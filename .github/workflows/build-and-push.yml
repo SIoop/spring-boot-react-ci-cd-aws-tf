@@ -46,7 +46,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ env.REPO_OWNER }}/spring-boot-react-ci-cd-aws-tf:latest -t ghcr.io/${{ env.REPO_OWNER }}/my-java-app:${{ env.VERSION }} .
+          docker build -t ghcr.io/${{ env.REPO_OWNER }}/spring-boot-react-ci-cd-aws-tf:latest -t ghcr.io/${{ env.REPO_OWNER }}/spring-boot-react-ci-cd-aws-tf:${{ env.VERSION }} .
 
       - name: Push Docker image to GitHub Container Registry
         run: |
