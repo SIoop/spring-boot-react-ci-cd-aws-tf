@@ -35,14 +35,17 @@ jobs:
       - name: Extract project version
         run: echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
 
+      - name: Convert GitHub username to lowercase
+        run: echo "REPO_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/spring-boot-react-ci-cd-aws-tf:latest -t ghcr.io/${{ github.repository_owner }}/my-java-app:${{ env.VERSION }} .
+          docker build -t ghcr.io/${{ env.REPO_OWNER }}/spring-boot-react-ci-cd-aws-tf:latest -t ghcr.io/${{ env.REPO_OWNER }}/my-java-app:${{ env.VERSION }} .
 
       - name: Push Docker image to GitHub Container Registry
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/spring-boot-react-ci-cd-aws-tf:latest
-          docker push ghcr.io/${{ github.repository_owner }}/spring-boot-react-ci-cd-aws-tf:${{ env.VERSION }}
+          docker push ghcr.io/${{ env.REPO_OWNER }}/spring-boot-react-ci-cd-aws-tf:latest
+          docker push ghcr.io/${{ env.REPO_OWNER }}/spring-boot-react-ci-cd-aws-tf:${{ env.VERSION }}
