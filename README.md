@@ -22,7 +22,7 @@ To fork/set up this project yourself, follow these steps:
 
 Terraform will output the Load Balancer DNS name, using this you can access the application after 5-10 min startup time.
 
-To destroy the architecture, run `terraform destroy`
+To destroy the architecture, run `terraform destroy -var="github_secret_arn={your_aws_secrets_manager_secret_arn}`. Then delete your github PAT and the secret in the target AWS account.
 
 ## AWS Architecture
 
