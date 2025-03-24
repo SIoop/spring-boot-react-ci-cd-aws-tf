@@ -1,4 +1,55 @@
-# react-and-spring-data-rest
+# spring-boot-react-ci-cd-aws-tf
+
+This is a fork of the [spring boot react example](https://gitlab.com/cloud-devops-assignments/spring-boot-react-example). It introduces the following changes:
+* Updated npm/node and all javascript libraries used
+* Added CI for building the app
+* Added CI for building a container around the app and deploying it to the repo-owner's github container repo
+
+## Forking and setting up this project
+
+To fork/set up this project yourself, you need to follow these steps:
+
+1. Fork the github repo
+2. Make sure that the `build-and-push` action runs once, for this commit to the `main` branch, e.g. make dummy changes in this readme
+3. Change the values in `infrastructure/main.tf` according to you preferences: AWS region, environment name for tagging
+4. Set up AWS credentials to be used by terraform locally
+5. Set up Github Personal access token(classic) with `read:packages` permission
+6. Set up secret in secrets manager with following content: `{"username": "your_github_username", "password": "pat_created_in_previous_step"}
+7. Change local variable `github_secret_arn` in `infrastructure/main.tf` to ARN copied from the secret created in the previous step
+8. Change local variable `container_image` `in infrastructure/main.tf` to `ghcr.io/{your_github_name}/spring-boot-react-ci-cd-aws-tf:latest`
+9. Run terraform init, validate, plan, apply on your local machine
+
+To destroy the architecture, run `terraform destroy`
+
+## AWS Architecture
+
+The application is run in a container, managed by ECS and Fargate. It is configured with an AutoScaling policy, targeting CPU utilization of 70%. The set-up for testing is running with 0.25 vCPU and 0.5 GB memory per container. It will automatically scale between 1 and 3 tasks.
+
+Incoming traffic is managed by an application load balancer. It distributes traffic between all running containers serving the app.
+
+The app deploys its own VPC network. It has two subnets, containers are spread amongst them, providing resiliency.
+
+App logs are written to a CloudWatch log group, one stream for each task. Each container is monitored with health-checks from the Load Balancer target group.
+
+
+## Next steps
+
+### Split frontend and backend into separate containers
+
+This can be done by setting up a separate build process for the frontend, using npm/node to build the application and then copying the artifacts into a container image based on a web-server, that will then host the frontend. One challenge with this is the interdependency between the current frontend and backend. The frontend is served using thymeleaf templating in Spring Boot, and Spring Boot authentication services. This dependency would have to be resolved to split frontend and backend cleanly.
+
+Additionally, the build of the Java Spring Boot application would have to be changed to exclude the frontend, i.e. by modifying the maven build configuration.
+
+
+### Switch to stand-alone database
+
+By either using a managed DB in the cloud or setting up an additional container running the database, the in-memory database could be retired. This would require changes to the connection setup in the code, as well as providing network connectivity/authentication between backend application and database.
+
+### Setting up a Infrastrcutre pipeline
+
+By adding an additional github actions workflow, the infrastructure and application could be deployed continuously. For this, a simple terraform pipeline would suffice. However, a backend to store the terraform state would have to be set up.
+
+## Original Documentation below
 
 The application has a react frontend and a Spring Boot Rest API, packaged as a single module Maven application. You can build the application using maven and run it as a Spring Boot application using the flat jar generated in target (`java -jar target/*.jar`).
 
