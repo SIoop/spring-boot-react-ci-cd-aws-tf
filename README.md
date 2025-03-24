@@ -4,20 +4,24 @@ This is a fork of the [spring boot react example](https://gitlab.com/cloud-devop
 * Updated npm/node and all javascript libraries used
 * Added CI for building the app
 * Added CI for building a container around the app and deploying it to the repo-owner's github container repo
+* Added Terraform IaC to deploy the app to AWS from local
 
 ## Forking and setting up this project
+Note: The Containers running in AWS as well as the ALB and everything created will be publicly accessible. The Terraform IaC will create its own VPC network, so there should be no access to any other parts of infrastructure in the AWS Account. I would still advise not to deploy this into any AWS account with very sensitive information/data.
 
-To fork/set up this project yourself, you need to follow these steps:
+To fork/set up this project yourself, follow these steps:
 
 1. Fork the github repo
-2. Make sure that the `build-and-push` action runs once, for this commit to the `main` branch, e.g. make dummy changes in this readme
-3. Change the values in `infrastructure/main.tf` according to you preferences: AWS region, environment name for tagging
-4. Set up AWS credentials to be used by terraform locally
-5. Set up Github Personal access token(classic) with `read:packages` permission
-6. Set up secret in secrets manager with following content: `{"username": "your_github_username", "password": "pat_created_in_previous_step"}
-7. Change local variable `github_secret_arn` in `infrastructure/main.tf` to ARN copied from the secret created in the previous step
-8. Change local variable `container_image` `in infrastructure/main.tf` to `ghcr.io/{your_github_name}/spring-boot-react-ci-cd-aws-tf:latest`
+2. Change the values in `infrastructure/main.tf` according to you preferences: AWS region, environment name for tagging
+3. Set up AWS credentials to be used by terraform locally, i.e. by running `aws configure` using the AWS CLI
+4. Set up Github Personal access token(classic) with `read:packages` permission
+5. Set up secret in secrets manager with following content: `{"username": "your_github_username", "password": "pat_created_in_previous_step"}
+6. Change local variable `github_secret_arn` in `infrastructure/main.tf` to ARN copied from the secret created in the previous step
+7. Change local variable `container_image` `in infrastructure/main.tf` to `ghcr.io/{your_github_name}/spring-boot-react-ci-cd-aws-tf:latest`
+8. Make sure that the `build-and-push` action runs once, for this commit your changes to the `main` branch
 9. Run terraform init, validate, plan, apply on your local machine
+
+Terraform will output the Load Balancer DNS name, using this you can access the application after 5-10 min startup time.
 
 To destroy the architecture, run `terraform destroy`
 
@@ -31,8 +35,16 @@ The app deploys its own VPC network. It has two subnets, containers are spread a
 
 App logs are written to a CloudWatch log group, one stream for each task. Each container is monitored with health-checks from the Load Balancer target group.
 
+![AWS Architecture](img/aws_arch.jpg)
+
 
 ## Next steps
+
+### Security concerns
+
+Currently two public subnets are used. Move the ECS tasks/containers into a private network and have only the Load Balancer be publicly accessible.
+
+Introduce HTTPS at Load Balancer level to encrypt traffic (keeping the containers unaware of this for separation of concerns.)
 
 ### Split frontend and backend into separate containers
 
@@ -45,7 +57,7 @@ Additionally, the build of the Java Spring Boot application would have to be cha
 
 By either using a managed DB in the cloud or setting up an additional container running the database, the in-memory database could be retired. This would require changes to the connection setup in the code, as well as providing network connectivity/authentication between backend application and database.
 
-### Setting up a Infrastrcutre pipeline
+### Setting up a Infrastructure pipeline (CD)
 
 By adding an additional github actions workflow, the infrastructure and application could be deployed continuously. For this, a simple terraform pipeline would suffice. However, a backend to store the terraform state would have to be set up.
 
