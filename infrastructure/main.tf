@@ -8,13 +8,16 @@ provider "aws" {
   }
 }
 
+variable "github_secret_arn" {
+  type = string
+}
+
 locals {
-  account_id  = data.aws_caller_identity.current.account_id
-  environment = "dev"
-  port        = 80
-  region      = "eu-west-1"
-  github_secret_arn = "arn:aws:secretsmanager:${local.region}:${local.account_id}:secret:github-container-registry-5b4R0V"
-  container_image = "ghcr.io/sioop/spring-boot-react-ci-cd-aws-tf:latest"
+  account_id        = data.aws_caller_identity.current.account_id
+  environment       = "dev"
+  port              = 80
+  region            = "eu-west-1"
+  container_image   = "ghcr.io/sioop/spring-boot-react-ci-cd-aws-tf:latest"
 }
 
 data "aws_caller_identity" "current" {}
@@ -111,13 +114,13 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
       repositoryCredentials = {
-        credentialsParameter = local.github_secret_arn
+        credentialsParameter = var.github_secret_arn
       }
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group" = aws_cloudwatch_log_group.ecs_logs.name
-          "awslogs-region" = "eu-west-1"
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs_logs.name
+          "awslogs-region"        = "eu-west-1"
           "awslogs-stream-prefix" = "ecs"
         }
       }

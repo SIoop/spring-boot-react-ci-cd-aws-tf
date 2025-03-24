@@ -15,11 +15,10 @@ To fork/set up this project yourself, follow these steps:
 2. Change the values in `infrastructure/main.tf` according to you preferences: AWS region, environment name for tagging
 3. Set up AWS credentials to be used by terraform locally, i.e. by running `aws configure` using the AWS CLI
 4. Set up Github Personal access token(classic) with `read:packages` permission
-5. Set up secret in secrets manager with following content: `{"username": "your_github_username", "password": "pat_created_in_previous_step"}
-6. Change local variable `github_secret_arn` in `infrastructure/main.tf` to ARN copied from the secret created in the previous step
-7. Change local variable `container_image` `in infrastructure/main.tf` to `ghcr.io/{your_github_name}/spring-boot-react-ci-cd-aws-tf:latest`
-8. Make sure that the `build-and-push` action runs once, for this commit your changes to the `main` branch
-9. Run terraform init, validate, plan, apply on your local machine
+5. Set up secret in AWS secrets manager with following content: `{"username": "your_github_username", "password": "pat_created_in_previous_step"}
+6. Change local variable `container_image` `in infrastructure/main.tf` to `ghcr.io/{your_github_name}/spring-boot-react-ci-cd-aws-tf:latest`
+7. Make sure that the `build-and-push` action runs once, for this commit your changes to the `main` branch
+8. Run `terraform init`, `terraform validate`, `terraform plan -var="github_secret_arn={your_aws_secrets_manager_secret_arn}"`, `terraform apply -var="github_secret_arn={your_aws_secrets_manager_secret_arn}"` on your local machine
 
 Terraform will output the Load Balancer DNS name, using this you can access the application after 5-10 min startup time.
 
